@@ -1,0 +1,67 @@
+version: "3.9"
+services:
+  tusd:
+    image: tusproject/tusd:v1.10
+    restart: unless-stopped
+    entrypoint: sh
+    command: -c 'tusd -verbose -s3-bucket $$MINIO_BUCKET -s3-endpoint $$MINIO_HOST'
+    volumes:
+      - tusd:/data
+    env_file:
+      - _env/tusd.env
+    depends_on:
+      - minio
+  frontend:
+    image: node:18.14.0-bullseye
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    env_file:
+      - _env/frontend.env
+    command: "yarn dev --host"
+    ports:
+      # Need for HMR.
+      - "5173:5173"
+  minio:
+    image: minio/minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_storage:/data
+    env_file:
+      - _env/minio.env
+    entrypoint: sh
+    # First time create bucket with mkdir https://github.com/minio/minio/issues/4769#issuecomment-331033735
+    command: -c 'mkdir -p /data/$$MINIO_BUCKET && minio server --console-address ":9001" /data'
+  nginx:
+    image: nginx:1.21.6-alpine
+    restart: unless-stopped
+    volumes:
+      - ./_docker/nginx/dev/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - tusd
+      - frontend
+    ports:
+      - "80:80"
+  oauth:
+    image: zemkog/oauth-server:20230220
+    restart: unless-stopped
+    env_file:
+      - _env/oauth.env
+    working_dir: /app
+    volumes:
+      - ./oauth-keys:/app/var/keys
+  oauth_postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    env_file:
+      - _env/oauth_postgres.env
+    volumes:
+      - oauth_postgres:/var/lib/postgresql/data:rw
+volumes:
+  tusd:
+  minio_storage:
+  oauth_postgres:
