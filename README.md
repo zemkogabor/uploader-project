@@ -11,3 +11,14 @@ $ cp .env.example .env
 $ cd frontend
 $ docker run --rm --tty -u 1000 --volume $PWD:/app node:18.14.0-bullseye /bin/sh -c "cd /app; yarn install"
 ```
+
+## Useful scripts
+
+### Remove expired access tokens 
+TODO: must be added to cronjob
+
+```bash
+docker-compose exec oauth bash
+
+```
+

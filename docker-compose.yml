@@ -47,7 +47,7 @@ services:
     ports:
       - "80:80"
   oauth:
-    image: zemkog/oauth-server:20230220
+    image: zemkog/oauth-server:20230320
     restart: unless-stopped
     env_file:
       - _env/oauth.env

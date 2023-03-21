@@ -94,7 +94,7 @@ const actions = {
       return Promise.resolve()
     }
 
-    return Axios.get('http://oauth.127.0.0.1.nip.io/user').then(response => {
+    return Axios.get(env.AUTH_URL + '/user').then(response => {
       commit('setUser', response.data)
     }).catch(async error => {
       if (retry) {
@@ -136,7 +136,7 @@ const actions = {
   login({ commit, dispatch }, { email, password }) {
     commit('setLoadingLogin', true)
 
-    return Axios.post(env.AUTH_ACCESS_TOKEN_URL, {
+    return Axios.post(env.AUTH_URL + '/access_token', {
       grant_type: 'password',
       client_id: env.AUTH_CLIENT_ID,
       client_secret: env.AUTH_CLIENT_SECRET,
@@ -196,7 +196,7 @@ const actions = {
 
     // New axios instance to disable interceptors for this request. (e.g.: request blocking interceptor)
     const notInterceptedAxiosInstance = Axios.create()
-    return notInterceptedAxiosInstance.post(env.AUTH_ACCESS_TOKEN_URL, {
+    return notInterceptedAxiosInstance.post(env.AUTH_URL + '/access_token', {
       grant_type: 'refresh_token',
       client_id: env.AUTH_CLIENT_ID,
       client_secret: env.AUTH_CLIENT_SECRET,
@@ -216,8 +216,9 @@ const actions = {
   logout({ commit }) {
     commit('setLoadingLogout', true)
 
-    return Axios.post('/user/logout').then(() => {
+    return Axios.post(env.AUTH_URL + '/user/logout').then(() => {
       commit('setUser', null)
+      Token.removeTokens()
     }).catch(error => {
       console.error(error)
     }).finally(() => {
