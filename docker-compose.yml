@@ -4,13 +4,22 @@ services:
     image: tusproject/tusd:v1.10
     restart: unless-stopped
     entrypoint: sh
-    command: -c 'tusd -verbose -s3-bucket $$MINIO_BUCKET -s3-endpoint $$MINIO_HOST'
+    command: -c 'tusd -verbose -s3-bucket $$MINIO_BUCKET -s3-endpoint $$MINIO_HOST --hooks-http http://tusd-hook:3000/write'
     volumes:
       - tusd:/data
     env_file:
       - _env/tusd.env
     depends_on:
       - minio
+  tusd-hook:
+    image: node:18.4.0-alpine
+    restart: unless-stopped
+    volumes:
+      - ./tusd-hook:/app
+    env_file:
+      - _env/tusd-hook.env
+    working_dir: /app
+    command: "yarn dev"
   frontend:
     image: node:18.14.0-bullseye
     restart: unless-stopped

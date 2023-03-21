@@ -6,9 +6,10 @@
 
 <script>
 import * as tus from 'tus-js-client'
+import Token from '@/services/token.js'
 
 export default {
-  name: 'File',
+  name: 'Upload',
   methods: {
     onInputChange(e) {
       // Get the selected file from the input element
@@ -18,6 +19,9 @@ export default {
       const upload = new tus.Upload(file, {
         endpoint: 'http://file.127.0.0.1.nip.io/files/',
         retryDelays: [0, 3000, 5000, 10000, 20000],
+        headers: {
+          Authorization: 'Bearer ' + Token.getAccessToken(),
+        },
         metadata: {
           filename: file.name,
           filetype: file.type,

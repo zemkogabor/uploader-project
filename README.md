@@ -1,15 +1,22 @@
 # Simple Gallery
 ## Install Dev
 
-1. Set environments with te following example
-```bash
-$ cp .env.example .env
-```
+1. Set environments in `_env` folder
 
 2. Install frontend framework and dependencies
 ```bash
-$ cd frontend
-$ docker run --rm --tty -u 1000 --volume $PWD:/app node:18.14.0-bullseye /bin/sh -c "cd /app; yarn install"
+docker-compose run -u 1000 --rm frontend yarn install
+```
+
+3. Install tusd-hook
+```bash
+docker-compose run -u 1000 --rm tusd-hook yarn install
+```
+
+4. Start containers
+
+```bash
+docker-compose up -d
 ```
 
 ## Useful scripts
@@ -19,6 +26,6 @@ TODO: must be added to cronjob
 
 ```bash
 docker-compose exec oauth bash
-
+php cli.php clear-expired-tokens
 ```
 
