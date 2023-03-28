@@ -8,9 +8,10 @@
 docker-compose run -u 1000 --rm frontend yarn install
 ```
 
-3. Install tusd-hook
+3. Install backend
+
 ```bash
-docker-compose run -u 1000 --rm tusd-hook yarn install
+docker-compose run -u 1000 --rm backend composer install
 ```
 
 4. Start containers

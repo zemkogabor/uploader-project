@@ -34,7 +34,7 @@ export default {
           console.log(bytesUploaded, bytesTotal, percentage + '%')
         },
         onSuccess: function () {
-          console.log('Download %s from %s', upload.file.name, upload.url)
+          console.log('Download %s from %s', upload.file.name, upload.url, upload)
         },
       })
 

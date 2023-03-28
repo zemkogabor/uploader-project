@@ -4,22 +4,13 @@ services:
     image: tusproject/tusd:v1.10
     restart: unless-stopped
     entrypoint: sh
-    command: -c 'tusd -verbose -s3-bucket $$MINIO_BUCKET -s3-endpoint $$MINIO_HOST --hooks-http http://tusd-hook:3000/write'
+    command: -c 'tusd -verbose -s3-bucket $$MINIO_BUCKET -s3-endpoint $$MINIO_HOST --hooks-http http://nginx:8080/tus'
     volumes:
       - tusd:/data
     env_file:
       - _env/tusd.env
     depends_on:
       - minio
-  tusd-hook:
-    image: node:18.4.0-alpine
-    restart: unless-stopped
-    volumes:
-      - ./tusd-hook:/app
-    env_file:
-      - _env/tusd-hook.env
-    working_dir: /app
-    command: "yarn dev"
   frontend:
     image: node:18.14.0-bullseye
     restart: unless-stopped
@@ -70,7 +61,25 @@ services:
       - _env/oauth_postgres.env
     volumes:
       - oauth_postgres:/var/lib/postgresql/data:rw
+  backend:
+    build:
+      context: _docker/backend/dev
+    env_file:
+      - _env/backend.env
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./_docker/backend/dev/base.ini:/usr/local/etc/php/conf.d/base.ini
+      - ./backend:/app
+  backend_postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    env_file:
+      - _env/backend_postgres.env
+    volumes:
+      - backend_postgres:/var/lib/postgresql/data:rw
 volumes:
   tusd:
   minio_storage:
   oauth_postgres:
+  backend_postgres:
