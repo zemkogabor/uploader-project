@@ -1,3 +1,9 @@
+// Import custom variables
+@import 'theme/variables';
+
+// Import custom colors
+@import 'theme/colors';
+
 // Import boostrap core
 @import '~bootstrap/scss/bootstrap';
 @import '~bootstrap-icons/font/bootstrap-icons.css';

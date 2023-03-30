@@ -1,4 +1,4 @@
-# Simple Gallery
+# Uploader Project
 ## Install Dev
 
 1. Set environments in `_env` folder

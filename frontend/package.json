@@ -2,6 +2,7 @@
   "name": "frontend",
   "private": true,
   "dependencies": {
+    "@fontsource/roboto": "^4.5.8",
     "@popperjs/core": "^2.11.6",
     "@uppy/core": "^3.1.1",
     "@uppy/dashboard": "^3.3.1",

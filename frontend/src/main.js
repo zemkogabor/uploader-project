@@ -8,6 +8,12 @@ import axiosAuthConfig from '@/config/axiosAuthConfig.js'
 import { createI18n } from 'vue-i18n'
 import messages from './messages/index.js'
 import { createEmitter } from '@/modules/emitter/emitter.js'
+import '@fontsource/roboto/100.css'
+import '@fontsource/roboto/300.css'
+import '@fontsource/roboto/400.css'
+import '@fontsource/roboto/500.css'
+import '@fontsource/roboto/700.css'
+import '@fontsource/roboto/900.css'
 
 const app = createApp(App)
 

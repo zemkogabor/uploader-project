@@ -18,7 +18,7 @@ class IndexController
     {
         $response = new Response();
 
-        $response->getBody()->write('Simple Gallery Backend');
+        $response->getBody()->write('Uploader Project Backend');
 
         return $response;
     }

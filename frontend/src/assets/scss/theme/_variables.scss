@@ -1,0 +1,27 @@
+// Boostrap overrides
+
+// Spacers
+
+$spacer: 1rem !default;
+$spacers: (
+  0: 0,
+  1: ($spacer * .25),
+  2: ($spacer * .5),
+  3: ($spacer * .75),
+  4: $spacer,
+  5: ($spacer * 1.5),
+  6: ($spacer * 2),
+  7: ($spacer * 2.5),
+  8: ($spacer * 3),
+  9: ($spacer * 4),
+  10: ($spacer * 5),
+  11: ($spacer * 6),
+  12: ($spacer * 7),
+  13: ($spacer * 8),
+  14: ($spacer * 9),
+  15: ($spacer * 10),
+);
+
+// Font
+$font-family-sans-serif: 'Roboto', sans-serif;
+$font-size-base: .9rem;
