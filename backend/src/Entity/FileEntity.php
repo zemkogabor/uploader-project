@@ -24,19 +24,13 @@ class FileEntity
     public UuidInterface|string $uuid;
 
     #[ORM\Column]
-    public string $storage_type;
+    public string $bucket;
 
     #[ORM\Column]
-    public string $path;
+    public string $key;
 
     #[ORM\Column]
-    public string $name;
-
-    #[ORM\Column]
-    public string $original_name;
-
-    #[ORM\Column]
-    public ?string $file_type;
+    public string $filename;
 
     #[ORM\Column]
     public bool $is_private;
@@ -77,5 +71,13 @@ class FileEntity
     public function setDeletedAt(): void
     {
         $this->deleted_at = new DateTimeImmutable();
+    }
+
+    /**
+     * @return string
+     */
+    public function getS3Path(): string
+    {
+        return 's3://' . $this->bucket . '/' . $this->key;
     }
 }

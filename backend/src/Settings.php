@@ -14,6 +14,7 @@ class Settings
     private string|null $diCompilationPath;
     private array $doctrine;
     private string $authUrl;
+    private array $s3Client;
 
     public function __construct(string $appEnv)
     {
@@ -45,6 +46,12 @@ class Settings
 
         $this->authUrl = $_ENV['AUTH_URL'];
 
+        $this->s3Client = [
+            'host' => 'http://minio:9000',
+            'key' => 'admin',
+            'secret' => '12345678',
+        ];
+
         if ($this->appEnv === 'dev') {
             // Overrides for development mode
             $this->diCompilationPath = null;
@@ -74,5 +81,10 @@ class Settings
     public function getAuthUrl(): string
     {
         return $this->authUrl;
+    }
+
+    public function getS3Client(): array
+    {
+        return $this->s3Client;
     }
 }

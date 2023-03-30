@@ -4,15 +4,16 @@ declare(strict_types = 1);
 
 namespace App\Controller;
 
+use App\Auth\Auth;
+use App\Entity\FileEntity;
 use App\Repository\FileRepository;
 use App\Settings;
+use Aws\S3\S3Client;
 use Doctrine\ORM\EntityManager;
-use GuzzleHttp\Client;
+use Doctrine\ORM\Exception\ORMException;
 use GuzzleHttp\Exception\BadResponseException;
-use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Response;
-use GuzzleHttp\RequestOptions;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
@@ -20,7 +21,12 @@ use Slim\Exception\HttpBadRequestException;
 
 class TusHookController
 {
-    public function __construct(protected LoggerInterface $logger, protected EntityManager $em, protected Settings $settings)
+    public function __construct(
+        protected LoggerInterface $logger,
+        protected EntityManager $em,
+        protected Settings $settings,
+        protected S3Client $s3Client,
+    )
     {
     }
 
@@ -28,14 +34,14 @@ class TusHookController
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      * @throws GuzzleException
+     * @throws ORMException
      */
     public function actionIndex(ServerRequestInterface $request): ResponseInterface
     {
-        $fileRepository = new FileRepository($this->logger, $this->em);
-
         $body = $request->getParsedBody();
 
-        switch ($request->getHeader('hook-name')[0] ?? null) {
+        $hookName = $request->getHeader('hook-name')[0] ?? null;
+        switch ($hookName) {
             case 'pre-create':
                 $originalRequestHeader = $body['HTTPRequest']['Header'] ?? null;
 
@@ -45,19 +51,14 @@ class TusHookController
 
                 $authorization = $originalRequestHeader['Authorization'] ?? null;
 
-                if ($authorization === null) {
-                    throw new HttpBadRequestException($request, 'Authorization missing.');
+                if ($authorization === null || $authorization[0] === null) {
+                    throw new HttpBadRequestException($request, 'Authorization header missing.');
                 }
 
-                $client = new Client();
+                $auth = new Auth($this->settings);
 
                 try {
-                    $client->get($this->settings->getAuthUrl() . '/user', [
-                        RequestOptions::HEADERS => [
-                            'Authorization' => $authorization,
-                        ],
-                        RequestOptions::TIMEOUT => 5,
-                    ]);
+                    $auth->validateAccessToken($authorization[0]);
                 } catch (BadResponseException $e) {
                     $this->logger->warning('Tus pre-create hook validation failed.', [
                         'authorization' => $authorization,
@@ -67,20 +68,29 @@ class TusHookController
                     return $e->getResponse();
                 }
 
-                $this->logger->debug('Tus pre-create hook validation success.', [
-                    'authorization' => $authorization,
-                ]);
-
                 break;
-            case 'post-create':
             case 'pre-finish':
+                $storageType = $body['Upload']['Storage']['Type'];
+                if ($storageType !== 's3store') {
+                    throw new \LogicException('Not supported storage type: ' . $storageType);
+                }
+
+                $file = new FileEntity();
+                $file->bucket = $body['Upload']['Storage']['Bucket'];
+                $file->key = $body['Upload']['Storage']['Key'];
+                $file->filename = $body['Upload']['MetaData']['filename'];
+                $file->is_private = true;
+
+                $fileRepository = new FileRepository($this->logger, $this->em);
+                $fileRepository->createFile($file);
+                break;
             case 'post-finish':
-            case 'post-terminate':
-            case 'post-receive':
-                // No operation needed.
+                // TODO: Realtime event to notify users.
                 break;
             default:
-                throw new HttpBadRequestException($request, 'Invalid hook-name in header.');
+                $this->logger->warning('Not supported hook-name in header.', [
+                    'name' => $hookName,
+                ]);
         }
 
         return new Response();

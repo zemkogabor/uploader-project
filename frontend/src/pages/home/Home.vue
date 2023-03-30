@@ -4,7 +4,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import Upload from '@/components/upload/Upload.vue'
+import Upload from '@/components/upload2/Upload.vue'
 
 export default {
   name: 'Home',

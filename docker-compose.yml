@@ -4,7 +4,7 @@ services:
     image: tusproject/tusd:v1.10
     restart: unless-stopped
     entrypoint: sh
-    command: -c 'tusd -verbose -s3-bucket $$MINIO_BUCKET -s3-endpoint $$MINIO_HOST --hooks-http http://nginx:8080/tus'
+    command: -c 'tusd -verbose -s3-bucket $$MINIO_BUCKET -s3-endpoint $$MINIO_HOST --hooks-http http://nginx:8080/tus --hooks-enabled-events pre-create,pre-finish,post-finish'
     volumes:
       - tusd:/data
     env_file:
@@ -33,9 +33,20 @@ services:
       - minio_storage:/data
     env_file:
       - _env/minio.env
-    entrypoint: sh
-    # First time create bucket with mkdir https://github.com/minio/minio/issues/4769#issuecomment-331033735
-    command: -c 'mkdir -p /data/$$MINIO_BUCKET && minio server --console-address ":9001" /data'
+    command: minio server --console-address ":9001" /data
+  # First time auto creat buckets
+  minio_create_buckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    env_file:
+      - _env/minio.env
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD;
+      /usr/bin/mc mb --ignore-existing myminio/$$MINIO_BUCKET_UPLOADS;
+      exit 0;
+      "
   nginx:
     image: nginx:1.21.6-alpine
     restart: unless-stopped

@@ -28,13 +28,9 @@ final class Version20230328211534 extends AbstractMigration
             'autoincrement' => true,
         ]);
         $table->addColumn('uuid', UuidType::NAME);
-        $table->addColumn('storage_type', Types::STRING);
-        $table->addColumn('path', Types::STRING);
-        $table->addColumn('name', Types::STRING);
-        $table->addColumn('original_name', Types::STRING);
-        $table->addColumn('file_type', Types::STRING, [
-            'notnull' => false,
-        ]);
+        $table->addColumn('bucket', Types::STRING);
+        $table->addColumn('key', Types::STRING);
+        $table->addColumn('filename', Types::STRING);
         $table->addColumn('is_private', Types::BOOLEAN);
         $table->addColumn('created_at', Types::DATETIMETZ_MUTABLE);
         $table->addColumn('updated_at', Types::DATETIMETZ_MUTABLE);
