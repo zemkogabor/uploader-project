@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex justify-content-between">
+  <div class="d-flex justify-content-between mb-3">
     <h3 v-text="'Uploads'" />
     <button
       class="btn btn-success"
@@ -7,15 +7,19 @@
       v-text="'New Upload'"
     />
   </div>
-  <upload-modal v-if="uploadModalShown" @hidden="onUploadModalHidden" />
+  <file-list />
+  <upload-modal v-if="uploadModalShown" @hidden="onUploadModalHidden" @complete="onComplete" />
 </template>
 
 <script>
 import UploadModal from '@/components/upload-modal/UploadModal.vue'
+import FileList from '@/components/file-list/FileList.vue'
+import { mapActions } from 'vuex'
 
 export default {
   name: 'Home',
   components: {
+    FileList,
     UploadModal,
   },
   data() {
@@ -24,11 +28,17 @@ export default {
     }
   },
   methods: {
+    ...mapActions({
+      loadFiles: 'FileList/load',
+    }),
     onUploadClicked() {
       this.uploadModalShown = true
     },
     onUploadModalHidden() {
       this.uploadModalShown = false
+    },
+    onComplete() {
+      this.loadFiles()
     },
   },
 }

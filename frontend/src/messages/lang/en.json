@@ -2,7 +2,9 @@
   "login.title": "Login",
   "generic.brand": "Uploader Project",
   "generic.email": "Email",
+  "generic.name": "Name",
   "generic.password": "Password",
+  "generic.created_at": "Created At",
   "generic.api_error": "Internal server error.",
   "home.title": "Home",
   "login.submit": "Login",
@@ -17,5 +19,6 @@
   "validator.error.pattern_mismatch": "Please match the requested format.",
   "validator.error.range_underflow": "Please select a value that is no less than {0}.",
   "validator.error.range_overflow": "Please select a value that is no more than {0}.",
-  "validator.error.step_mismatch": "Please select a valid value. The two nearest valid values are {0} and {1}."
+  "validator.error.step_mismatch": "Please select a valid value. The two nearest valid values are {0} and {1}.",
+  "table.empty_text": "No data"
 }

@@ -13,6 +13,7 @@ use Psr\Log\LoggerInterface;
 
 /**
  * @method FileEntity findOneBy(array $criteria, array $orderBy = null)
+ * @method FileEntity[] findBy(array $criteria, ?array $orderBy = null, $limit = null, $offset = null)
  */
 class FileRepository extends EntityRepository
 {

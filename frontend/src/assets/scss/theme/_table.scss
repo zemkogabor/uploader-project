@@ -1,0 +1,11 @@
+
+.table-nowrap th, .table-nowrap td {
+  white-space: nowrap;
+}
+
+.table thead th {
+  background-color: $gray-200;
+  border-bottom-width: 0;
+  color: $gray-600;
+  font-size: 85%;
+}

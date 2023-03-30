@@ -27,6 +27,7 @@ import { Dashboard } from '@uppy/vue'
 import Tus from '@uppy/tus'
 import Uppy from '@uppy/core'
 import Token from '@/services/token.js'
+import env from '@/vite/env.js'
 
 export default {
   name: 'UploadModal',
@@ -36,6 +37,7 @@ export default {
   },
   emits: [
     'hidden',
+    'complete',
   ],
   data() {
     return {
@@ -44,7 +46,7 @@ export default {
   },
   created() {
     this.uppy = new Uppy().use(Tus, {
-      endpoint: 'http://file.127.0.0.1.nip.io/files/',
+      endpoint: env.UPLOAD_ENDPOINT,
       onBeforeRequest(req) {
         // It is important to set the latest access token before each request, because it can change from time to time.
         const token = Token.getAccessToken()
@@ -54,6 +56,10 @@ export default {
       // https://sme-uploader.web.app/docs/tus/#removeFingerprintOnSuccess-false
       removeFingerprintOnSuccess: true,
       limit: 20,
+    })
+
+    this.uppy.on('complete', () => {
+      this.$emit('complete')
     })
   },
   beforeUnmount() {

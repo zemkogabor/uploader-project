@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Controller;
 
 use App\Auth\Auth;
+use App\Form\FileListForm;
 use App\Repository\FileRepository;
 use App\Settings;
 use Aws\S3\S3Client;
@@ -19,7 +20,7 @@ use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use Slim\Exception\HttpBadRequestException;
 
-class FileController
+class FileController extends BaseController
 {
     public function __construct(
         protected LoggerInterface $logger,
@@ -51,6 +52,36 @@ class FileController
     }
 
     /**
+     * Auth validation
+     * TODO: Auth validation in middleware?
+     *
+     * @param ServerRequestInterface $request
+     * @return void
+     * @throws GuzzleException
+     */
+    public function validateAuth(ServerRequestInterface $request): void
+    {
+        $accessToken = static::getAccessToken($request);
+
+        if ($accessToken === null) {
+            throw new HttpBadRequestException($request,'Access token missing.');
+        }
+
+        $auth = new Auth($this->settings);
+
+        try {
+            $auth->validateAccessToken($accessToken);
+        } catch (BadResponseException $e) {
+            $this->logger->warning('File access auth validation failed.', [
+                'authToken' => $accessToken,
+                'responseCode' => $e->getResponse()->getStatusCode(),
+            ]);
+
+            throw $e;
+        }
+    }
+
+    /**
      * @param ServerRequestInterface $request
      * @param ResponseInterface $response
      * @param array $args
@@ -71,22 +102,9 @@ class FileController
         ]);
 
         if ($fileEntity->is_private) {
-            $accessToken = static::getAccessToken($request);
-
-            if ($accessToken === null) {
-                throw new HttpBadRequestException($request,'Access token missing.');
-            }
-
-            $auth = new Auth($this->settings);
-
             try {
-                $auth->validateAccessToken($accessToken);
+                $this->validateAuth($request);
             } catch (BadResponseException $e) {
-                $this->logger->warning('File access auth validation failed.', [
-                    'authToken' => $accessToken,
-                    'responseCode' => $e->getResponse()->getStatusCode(),
-                ]);
-
                 return $e->getResponse();
             }
         }
@@ -114,5 +132,57 @@ class FileController
         }
 
         return $response;
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     * @return ResponseInterface
+     * @throws GuzzleException
+     */
+    public function actionList(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        try {
+            $this->validateAuth($request);
+        } catch (BadResponseException $e) {
+            return $e->getResponse();
+        }
+
+        $form = new FileListForm();
+        $form->currentPage = $request->getQueryParams()['currentPage'] ?? null;
+        $form->pageSize = $request->getQueryParams()['pageSize'] ?? null;
+        $form->orderBy = $request->getQueryParams()['orderBy'] ?? null;
+        $form->sortDesc = $request->getQueryParams()['sortDesc'] ?? null;
+
+        $errors = static::getValidator()->validate($form);
+
+        if ($errors->count() > 0) {
+            throw new HttpBadRequestException($request, $errors[0]->getMessage());
+        }
+
+        $fileRepository = new FileRepository($this->logger, $this->em);
+
+        $criteria = ['deleted_at' => null];
+        $totalCount = $fileRepository->count($criteria);
+        $files = $fileRepository->findBy(
+            $criteria,
+            [$form->getOrderByColumn() => $form->getSortDirection()],
+            $form->getLimit(),
+            $form->getOffset(),
+        );
+
+        $items = [];
+        foreach ($files as $file) {
+            $items[] = [
+                'uuid' => $file->uuid,
+                'name' => $file->filename,
+                // TODO: Set timezone globally from env.
+                'createdAt' => $file->created_at->setTimezone(new \DateTimeZone('Europe/Budapest'))->format('Y-m-d H:i:sP'),
+            ];
+        }
+
+        // TODO: Use Symfony json response lib or one of similar lib.
+        $response->getBody()->write(json_encode(['items' => $items, 'totalCount' => $totalCount]));
+        return $response->withHeader('content-type', 'application/json');
     }
 }

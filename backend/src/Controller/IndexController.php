@@ -8,7 +8,7 @@ use GuzzleHttp\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 
-class IndexController
+class IndexController extends BaseController
 {
     public function __construct(protected LoggerInterface $logger)
     {

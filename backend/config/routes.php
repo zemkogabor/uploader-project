@@ -11,4 +11,5 @@ return static function (App $app) {
     $app->get('/', [IndexController::class, 'actionIndex']);
     $app->post('/tus', [TusHookController::class, 'actionIndex']);
     $app->get('/file/download/{uuid}', [FileController::class, 'actionDownload']);
+    $app->get('/file/list', [FileController::class, 'actionList']);
 };

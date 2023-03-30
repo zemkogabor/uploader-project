@@ -19,7 +19,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
 use Slim\Exception\HttpBadRequestException;
 
-class TusHookController
+class TusHookController extends BaseController
 {
     public function __construct(
         protected LoggerInterface $logger,

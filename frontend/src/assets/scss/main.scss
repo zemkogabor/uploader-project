@@ -4,6 +4,9 @@
 // Import custom colors
 @import 'theme/colors';
 
+// Import theme components
+@import 'theme/table';
+
 // Import boostrap core
 @import '~bootstrap/scss/bootstrap';
 @import '~bootstrap-icons/font/bootstrap-icons.css';
