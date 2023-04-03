@@ -13,6 +13,8 @@ services:
   nginx:
     image: zemkog/uploader-project-nginx:20230403
     restart: unless-stopped
+    env_file:
+      - _env/nginx.env
     depends_on:
       - tusd
     networks:
