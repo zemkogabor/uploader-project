@@ -4,13 +4,13 @@ services:
     image: tusproject/tusd:v1.10
     restart: unless-stopped
     entrypoint: sh
-    command: -c 'tusd -verbose -s3-bucket $$S3_BUCKET -s3-endpoint $$S3_HOST --hooks-http $$HOOK_URL --hooks-enabled-events pre-create,pre-finish,post-finish'
+    command: -c 'tusd -verbose -behind-proxy -s3-bucket $$S3_BUCKET -s3-endpoint $$S3_HOST --hooks-http $$HOOK_URL --hooks-enabled-events pre-create,pre-finish,post-finish'
     env_file:
       - _env/tusd.env
     networks:
       default:
         ipv4_address: 10.20.0.10
-  # The reverse proxy also includes the front end.
+  # The reverse proxy also includes the frontend.
   nginx:
     image: zemkog/uploader-project-nginx:20230403
     restart: unless-stopped
