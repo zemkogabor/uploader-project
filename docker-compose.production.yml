@@ -9,7 +9,7 @@ services:
       - _env/tusd.env
     networks:
       default:
-        ipv4_address: 10.10.2.10
+        ipv4_address: 10.20.0.10
   nginx:
     image: zemkog/uploader-project-nginx:20230403
     restart: unless-stopped
@@ -17,7 +17,7 @@ services:
       - tusd
     networks:
       default:
-        ipv4_address: 10.10.2.11
+        ipv4_address: 10.20.0.11
   oauth:
     image: zemkog/oauth-server:20230320
     restart: unless-stopped
@@ -28,7 +28,7 @@ services:
       - ./oauth-keys:/app/var/keys
     networks:
       default:
-        ipv4_address: 10.10.2.12
+        ipv4_address: 10.20.0.12
   oauth_postgres:
     image: postgres:15-alpine
     restart: unless-stopped
@@ -38,7 +38,7 @@ services:
       - oauth_postgres:/var/lib/postgresql/data:rw
     networks:
       default:
-        ipv4_address: 10.10.2.13
+        ipv4_address: 10.20.0.13
   backend:
     image: zemkog/uploader-project-backend:20230403
     env_file:
@@ -50,7 +50,7 @@ services:
       - ./backend:/app
     networks:
       default:
-        ipv4_address: 10.10.2.14
+        ipv4_address: 10.20.0.14
   backend_postgres:
     image: postgres:15-alpine
     restart: unless-stopped
@@ -60,15 +60,15 @@ services:
       - backend_postgres:/var/lib/postgresql/data:rw
     networks:
       default:
-        ipv4_address: 10.10.2.15
+        ipv4_address: 10.20.0.15
 networks:
   default:
     driver: bridge
     ipam:
       driver: default
       config:
-        - subnet: 10.10.2.0/16
-          gateway: 10.10.2.1
+        - subnet: 10.20.0.0/16
+          gateway: 10.20.0.1
 volumes:
   oauth_postgres:
   backend_postgres:
