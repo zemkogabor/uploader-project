@@ -117,6 +117,7 @@ class FileController extends BaseController
             's3' => ['seekable' => true],
         ]);
 
+        // TODO: Check connection before download!
         $stream = new Stream(
             fopen($fileEntity->getS3Path(), 'r', false, $context),
         );

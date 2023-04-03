@@ -47,9 +47,9 @@ class Settings
         $this->authUrl = $_ENV['AUTH_URL'];
 
         $this->s3Client = [
-            'host' => 'http://minio:9000',
-            'key' => 'admin',
-            'secret' => '12345678',
+            'host' => $_ENV['S3_HOST'],
+            'key' => $_ENV['S3_KEY'],
+            'secret' => $_ENV['S3_SECRET'],
         ];
 
         if ($this->appEnv === 'dev') {
