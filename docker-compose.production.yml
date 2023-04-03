@@ -45,9 +45,6 @@ services:
       - _env/backend.env
     restart: unless-stopped
     working_dir: /app
-    volumes:
-      - ./_docker/backend/dev/base.ini:/usr/local/etc/php/conf.d/base.ini
-      - ./backend:/app
     networks:
       default:
         ipv4_address: 10.20.0.14
