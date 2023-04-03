@@ -2,8 +2,8 @@ FROM composer:latest as composer_stage
 
 WORKDIR /app
 
-COPY composer.lock /app
-COPY composer.json /app
+COPY backend/composer.lock /app
+COPY backend/composer.json /app
 
 RUN composer install --ignore-platform-reqs --prefer-dist --no-scripts --no-progress --no-interaction --no-dev
 
@@ -30,14 +30,14 @@ RUN docker-php-ext-install \
     zip
 
 # Copy php config
-COPY _docker/php/prod/base.ini /usr/local/etc/php/conf.d/base.ini
+COPY _docker/backend/prod/base.ini /usr/local/etc/php/conf.d/base.ini
 
 # Copy folders
-COPY config /app/config
-COPY db /app/db
-COPY bin /app/bin
-COPY public /app/public
-COPY src /app/src
+COPY backend/bin /app/bin
+COPY backend/config /app/config
+COPY backend/migrations /app/migrations
+COPY backend/public /app/public
+COPY backend/src /app/src
 
 # Create keys folder
 RUN mkdir -p /app/var/keys

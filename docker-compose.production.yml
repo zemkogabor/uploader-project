@@ -7,54 +7,17 @@ services:
     command: -c 'tusd -verbose -s3-bucket $$S3_BUCKET -s3-endpoint $$S3_HOST --hooks-http $$HOOK_URL --hooks-enabled-events pre-create,pre-finish,post-finish'
     env_file:
       - _env/tusd.env
-    depends_on:
-      - minio
-  frontend:
-    image: node:18.14.0-bullseye
-    restart: unless-stopped
-    working_dir: /app
-    volumes:
-      - ./frontend:/app
-    env_file:
-      - _env/frontend.env
-    command: "yarn dev --host"
-    ports:
-      # Need for HMR.
-      - "5173:5173"
-  minio:
-    image: minio/minio
-    restart: unless-stopped
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - minio_storage:/data
-    env_file:
-      - _env/minio.env
-    command: minio server --console-address ":9001" /data
-  # First time auto creat buckets
-  minio_create_buckets:
-    image: minio/mc
-    depends_on:
-      - minio
-    env_file:
-      - _env/minio.env
-    entrypoint: >
-      /bin/sh -c "
-      /usr/bin/mc alias set myminio $$MINIO_HOST $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD;
-      /usr/bin/mc mb --ignore-existing myminio/$$MINIO_BUCKET_UPLOADS;
-      exit 0;
-      "
+    networks:
+      default:
+        ipv4_address: 10.10.1.10
   nginx:
-    image: nginx:1.21.6-alpine
+    image: zemkog/uploader-project-nginx:20230403
     restart: unless-stopped
-    volumes:
-      - ./_docker/nginx/dev/conf.d:/etc/nginx/conf.d
     depends_on:
       - tusd
-      - frontend
-    ports:
-      - "80:80"
+    networks:
+      default:
+        ipv4_address: 10.10.1.11
   oauth:
     image: zemkog/oauth-server:20230320
     restart: unless-stopped
@@ -63,6 +26,9 @@ services:
     working_dir: /app
     volumes:
       - ./oauth-keys:/app/var/keys
+    networks:
+      default:
+        ipv4_address: 10.10.1.12
   oauth_postgres:
     image: postgres:15-alpine
     restart: unless-stopped
@@ -70,9 +36,11 @@ services:
       - _env/oauth_postgres.env
     volumes:
       - oauth_postgres:/var/lib/postgresql/data:rw
+    networks:
+      default:
+        ipv4_address: 10.10.1.13
   backend:
-    build:
-      context: _docker/backend/dev
+    image: zemkog/uploader-project-backend:20230403
     env_file:
       - _env/backend.env
     restart: unless-stopped
@@ -80,6 +48,9 @@ services:
     volumes:
       - ./_docker/backend/dev/base.ini:/usr/local/etc/php/conf.d/base.ini
       - ./backend:/app
+    networks:
+      default:
+        ipv4_address: 10.10.1.14
   backend_postgres:
     image: postgres:15-alpine
     restart: unless-stopped
@@ -87,7 +58,17 @@ services:
       - _env/backend_postgres.env
     volumes:
       - backend_postgres:/var/lib/postgresql/data:rw
+    networks:
+      default:
+        ipv4_address: 10.10.1.15
+networks:
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.10.1.0/16
+          gateway: 10.10.1.1
 volumes:
-  minio_storage:
   oauth_postgres:
   backend_postgres:

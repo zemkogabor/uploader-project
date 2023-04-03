@@ -66,3 +66,10 @@ docker-compose exec oauth bash
 php cli.php clear-expired-tokens
 ```
 
+## Create images
+
+```
+docker buildx build -t zemkog/uploader-project-nginx:20230403 . --platform=linux/arm64,linux/amd64 -f _docker/nginx/prod/Dockerfile --push
+docker buildx build -t zemkog/uploader-project-backend:20230403 . --platform=linux/arm64,linux/amd64 -f _docker/backend/prod/Dockerfile --push
+```
+
