@@ -12,7 +12,7 @@ services:
         ipv4_address: 10.20.0.10
   # The reverse proxy also includes the frontend.
   nginx:
-    image: zemkog/uploader-project-nginx:20230403
+    image: zemkog/uploader-project-nginx:20230511
     restart: unless-stopped
     env_file:
       - _env/nginx.env # It will match the content of frontend.example, because only the frontend uses env within nginx.
@@ -43,7 +43,7 @@ services:
       default:
         ipv4_address: 10.20.0.13
   backend:
-    image: zemkog/uploader-project-backend:20230403
+    image: zemkog/uploader-project-backend:20230511
     env_file:
       - _env/backend.env
     restart: unless-stopped
