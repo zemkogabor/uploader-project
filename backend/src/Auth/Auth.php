@@ -8,11 +8,32 @@ use App\Settings;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
+use Psr\Http\Message\ServerRequestInterface;
 
 class Auth
 {
     public function __construct(protected Settings $settings)
     {
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @return string|null
+     */
+    public static function getAccessTokenFromRequest(ServerRequestInterface $request): ?string
+    {
+        // Access token in header is stronger.
+        $tokenFromHeader = $request->getHeader('Authorization')[0] ?? null;
+        if ($tokenFromHeader !== null) {
+            return $tokenFromHeader;
+        }
+
+        $tokenFromQuery = $request->getQueryParams()['accessToken'] ?? null;
+        if ($tokenFromQuery !== null) {
+            return $tokenFromQuery;
+        }
+
+        return null;
     }
 
     /**

@@ -5,14 +5,14 @@ declare(strict_types = 1);
 use App\ErrorRender\JsonErrorRenderer;
 use App\Middleware\CorsMiddleware;
 use App\Settings;
-use GuzzleHttp\Psr7\Response;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
 use Slim\App;
 
 return static function (App $app) {
     // Routing
-    $app->options('/{routes:.+}', function (ServerRequestInterface $request, Response $response) {
+    $app->options('/{routes:.+}', function (ServerRequestInterface $request, ResponseInterface $response) {
         return $response;
     });
     $app->add(new CorsMiddleware());

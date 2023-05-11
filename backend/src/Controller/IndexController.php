@@ -4,9 +4,9 @@ declare(strict_types = 1);
 
 namespace App\Controller;
 
-use GuzzleHttp\Psr7\Response;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
+use Slim\Http\Response;
+use Slim\Http\ServerRequest;
 
 class IndexController extends BaseController
 {
@@ -14,12 +14,8 @@ class IndexController extends BaseController
     {
     }
 
-    public function actionIndex(): ResponseInterface
+    public function actionIndex(ServerRequest $request, Response $response): Response
     {
-        $response = new Response();
-
-        $response->getBody()->write('Uploader Project Backend');
-
-        return $response;
+        return $response->withJson(['title' => 'Uploader Project']);
     }
 }

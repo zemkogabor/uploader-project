@@ -4,21 +4,20 @@ declare(strict_types = 1);
 
 namespace App\Controller;
 
-use App\Auth\Auth;
 use App\Form\FileListForm;
 use App\Repository\FileRepository;
 use App\Settings;
 use Aws\S3\S3Client;
 use Doctrine\ORM\EntityManager;
-use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Stream;
 use Psr\Http\Message\MessageInterface;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use Slim\Exception\HttpBadRequestException;
+use Slim\Http\Response;
+use Slim\Http\ServerRequest;
 
 class FileController extends BaseController
 {
@@ -32,63 +31,13 @@ class FileController extends BaseController
     }
 
     /**
-     * @param ServerRequestInterface $request
-     * @return string|null
-     */
-    protected static function getAccessToken(ServerRequestInterface $request): ?string
-    {
-        // Access token in header is stronger.
-        $tokenFromHeader = $request->getHeader('Authorization')[0] ?? null;
-        if ($tokenFromHeader !== null) {
-            return $tokenFromHeader;
-        }
-
-        $tokenFromQuery = $request->getQueryParams()['accessToken'] ?? null;
-        if ($tokenFromQuery !== null) {
-            return $tokenFromQuery;
-        }
-
-        return null;
-    }
-
-    /**
-     * Auth validation
-     * TODO: Auth validation in middleware?
-     *
-     * @param ServerRequestInterface $request
-     * @return void
-     * @throws GuzzleException
-     */
-    public function validateAuth(ServerRequestInterface $request): void
-    {
-        $accessToken = static::getAccessToken($request);
-
-        if ($accessToken === null) {
-            throw new HttpBadRequestException($request,'Access token missing.');
-        }
-
-        $auth = new Auth($this->settings);
-
-        try {
-            $auth->validateAccessToken($accessToken);
-        } catch (BadResponseException $e) {
-            $this->logger->warning('File access auth validation failed.', [
-                'authToken' => $accessToken,
-                'responseCode' => $e->getResponse()->getStatusCode(),
-            ]);
-
-            throw $e;
-        }
-    }
-
-    /**
-     * @param ServerRequestInterface $request
+     * @param ServerRequest $request
      * @param ResponseInterface $response
      * @param array $args
      * @return MessageInterface
      * @throws GuzzleException
      */
-    public function actionDownload(ServerRequestInterface $request, ResponseInterface $response, array $args): MessageInterface
+    public function actionDownload(ServerRequest $request, ResponseInterface $response, array $args): MessageInterface
     {
         $uuid = $args['uuid'];
 
@@ -100,14 +49,6 @@ class FileController extends BaseController
         $fileEntity = $fileRepository->findOneBy([
             'uuid' => $uuid,
         ]);
-
-        if ($fileEntity->is_private) {
-            try {
-                $this->validateAuth($request);
-            } catch (BadResponseException $e) {
-                return $e->getResponse();
-            }
-        }
 
         // https://docs.aws.amazon.com/sdk-for-php/v3/developer-guide/s3-stream-wrapper.html
         $this->s3Client->registerStreamWrapper();
@@ -136,24 +77,17 @@ class FileController extends BaseController
     }
 
     /**
-     * @param ServerRequestInterface $request
-     * @param ResponseInterface $response
-     * @return ResponseInterface
-     * @throws GuzzleException
+     * @param ServerRequest $request
+     * @param Response $response
+     * @return Response
      */
-    public function actionList(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    public function actionList(ServerRequest $request, Response $response): Response
     {
-        try {
-            $this->validateAuth($request);
-        } catch (BadResponseException $e) {
-            return $e->getResponse();
-        }
-
         $form = new FileListForm();
-        $form->currentPage = $request->getQueryParams()['currentPage'] ?? null;
-        $form->pageSize = $request->getQueryParams()['pageSize'] ?? null;
-        $form->orderBy = $request->getQueryParams()['orderBy'] ?? null;
-        $form->sortDesc = $request->getQueryParams()['sortDesc'] ?? null;
+        $form->currentPage = $request->getQueryParam('currentPage') ?? null;
+        $form->pageSize = $request->getQueryParam('pageSize') ?? null;
+        $form->orderBy = $request->getQueryParam('orderBy') ?? null;
+        $form->sortDesc = $request->getQueryParam('sortDesc') ?? null;
 
         $errors = static::getValidator()->validate($form);
 
@@ -182,8 +116,6 @@ class FileController extends BaseController
             ];
         }
 
-        // TODO: Use Symfony json response lib or one of similar lib.
-        $response->getBody()->write(json_encode(['items' => $items, 'totalCount' => $totalCount]));
-        return $response->withHeader('content-type', 'application/json');
+        return $response->withJson(['items' => $items, 'totalCount' => $totalCount]);
     }
 }

@@ -13,11 +13,11 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Exception\ORMException;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
 use Slim\Exception\HttpBadRequestException;
+use Slim\Http\Response;
+use Slim\Http\ServerRequest;
 
 class TusHookController extends BaseController
 {
@@ -31,12 +31,13 @@ class TusHookController extends BaseController
     }
 
     /**
-     * @param ServerRequestInterface $request
+     * @param ServerRequest $request
+     * @param Response $response
      * @return ResponseInterface
      * @throws GuzzleException
      * @throws ORMException
      */
-    public function actionIndex(ServerRequestInterface $request): ResponseInterface
+    public function actionIndex(ServerRequest $request, Response $response): ResponseInterface
     {
         $body = $request->getParsedBody();
 
@@ -93,6 +94,6 @@ class TusHookController extends BaseController
                 ]);
         }
 
-        return new Response();
+        return $response;
     }
 }
